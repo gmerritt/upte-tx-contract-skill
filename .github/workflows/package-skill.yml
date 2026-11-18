@@ -1,0 +1,44 @@
+name: Package skill
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'upte-tx-contract-skill/**'
+      - '.github/workflows/package-skill.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: package-skill
+  cancel-in-progress: false
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out latest main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Build and publish ZIP
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/upte-tx-contract-skill.zip"
+          git archive --format=zip --output="$archive" HEAD upte-tx-contract-skill
+          git tag -f skill-latest
+          git push --force origin refs/tags/skill-latest
+          if gh release view skill-latest >/dev/null 2>&1; then
+            gh release edit skill-latest --title "Latest skill bundle" \
+              --notes "Automatically built from main commit $(git rev-parse HEAD)."
+          else
+            gh release create skill-latest --verify-tag --title "Latest skill bundle" \
+              --notes "Automatically built from main commit $(git rev-parse HEAD)."
+          fi
+          gh release upload skill-latest "$archive" --clobber
