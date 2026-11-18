@@ -1,0 +1,3 @@
+[submodule "UPTE-TX-inferred"]
+	path = UPTE-TX-inferred
+	url = https://github.com/gmerritt/UPTE-TX-inferred.git
